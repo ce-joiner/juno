@@ -1,0 +1,32 @@
+# Juno Project - Cursor AI Rules
+
+## Figma Integration
+- Design source: https://www.figma.com/design/rKrgzUKTwAFeIoPaVizRPK/Self-Care-Management-App
+- Component library node: 755-91172
+- Hi-fi wireframes node: 288-5658
+- Style tile node: 503-29677
+
+## Design System
+- Primary color: #99F7AB
+- Secondary color: #FAFFF9
+- Font: DM Sans (headers/body), DM Mono (buttons/labels)
+- Component library available in Figma - reference before building
+
+## Code Style
+- TypeScript strict mode
+- Functional components with hooks
+- Zustand for state management
+- React Query for server state
+- NativeWind for styling (Tailwind utility classes)
+
+## Architecture
+- Feature-based folder structure
+- Screens in src/screens/{feature}
+- Shared components in src/components
+- State stores in src/stores
+- API services in src/services
+
+## Naming Conventions
+- Components: PascalCase (e.g., PlannerDayScreen.tsx)
+- Files: kebab-case for utilities (e.g., date-utils.ts)
+- Stores: use{Feature}Store (e.g., usePlannerStore.ts)
