@@ -36,6 +36,13 @@ A holistic self-care management app that integrates productivity planning with w
 
 ---
 
+## Documentation
+
+- [Architecture Overview](docs/ARCHITECTURE.md) - System design and data models
+- [AWS Setup Guide](docs/AWS_SETUP.md) - Backend infrastructure explained
+
+---
+
 ##  Getting Started
 
 ### Prerequisites
