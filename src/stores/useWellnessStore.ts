@@ -20,10 +20,16 @@ interface WellnessActivity {
   isCustom: boolean; // true if user created it, false if preset
 }
 
+// Active wellness session data
+interface WellnessSession {
+  activity: WellnessActivity;
+  startedAt: Date;
+}
+
 // wellness state
 interface WellnessState {
   habits: WellnessActivity[];
-  currentSession: any | null; // Active session data (null when no session running)
+  currentSession: WellnessSession | null; // Active session data (null when no session running)
   streak: number; // consecutive days of activity
 
   // actions
