@@ -6,5 +6,6 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": ["amplify"]
 }

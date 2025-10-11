@@ -25,5 +25,646 @@
     },
     "unauthenticated_identities_enabled": true
   },
+  "data": {
+    "url": "https://jghaagn4azhixbybbia5wtkg2i.appsync-api.us-east-1.amazonaws.com/graphql",
+    "aws_region": "us-east-1",
+    "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+    "authorization_types": [
+      "AWS_IAM"
+    ],
+    "model_introspection": {
+      "version": 1,
+      "models": {
+        "User": {
+          "name": "User",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "email": {
+              "name": "email",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "name": {
+              "name": "name",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "profilePhoto": {
+              "name": "profilePhoto",
+              "isArray": false,
+              "type": "AWSURL",
+              "isRequired": false,
+              "attributes": []
+            },
+            "joinedAt": {
+              "name": "joinedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": true,
+              "attributes": []
+            },
+            "preferences": {
+              "name": "preferences",
+              "isArray": false,
+              "type": {
+                "nonModel": "UserPreferences"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "stats": {
+              "name": "stats",
+              "isArray": false,
+              "type": {
+                "nonModel": "UserStats"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            }
+          },
+          "syncable": true,
+          "pluralName": "Users",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        },
+        "Event": {
+          "name": "Event",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "title": {
+              "name": "title",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "startTime": {
+              "name": "startTime",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": true,
+              "attributes": []
+            },
+            "endTime": {
+              "name": "endTime",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": true,
+              "attributes": []
+            },
+            "type": {
+              "name": "type",
+              "isArray": false,
+              "type": {
+                "enum": "EventType"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "completed": {
+              "name": "completed",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            },
+            "description": {
+              "name": "description",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "wellnessActivity": {
+              "name": "wellnessActivity",
+              "isArray": false,
+              "type": {
+                "nonModel": "EventWellnessActivity"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            }
+          },
+          "syncable": true,
+          "pluralName": "Events",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        },
+        "WellnessSession": {
+          "name": "WellnessSession",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "activityId": {
+              "name": "activityId",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": false,
+              "attributes": []
+            },
+            "activityName": {
+              "name": "activityName",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "category": {
+              "name": "category",
+              "isArray": false,
+              "type": {
+                "enum": "WellnessSessionCategory"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "subcategory": {
+              "name": "subcategory",
+              "isArray": false,
+              "type": {
+                "enum": "WellnessSessionSubcategory"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "startedAt": {
+              "name": "startedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": true,
+              "attributes": []
+            },
+            "completedAt": {
+              "name": "completedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            },
+            "plannedDuration": {
+              "name": "plannedDuration",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "actualDuration": {
+              "name": "actualDuration",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "completed": {
+              "name": "completed",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            },
+            "mood": {
+              "name": "mood",
+              "isArray": false,
+              "type": {
+                "enum": "WellnessSessionMood"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "notes": {
+              "name": "notes",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            }
+          },
+          "syncable": true,
+          "pluralName": "WellnessSessions",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        },
+        "WellnessActivity": {
+          "name": "WellnessActivity",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "name": {
+              "name": "name",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "category": {
+              "name": "category",
+              "isArray": false,
+              "type": {
+                "enum": "WellnessActivityCategory"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "subcategory": {
+              "name": "subcategory",
+              "isArray": false,
+              "type": {
+                "enum": "WellnessActivitySubcategory"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "description": {
+              "name": "description",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "duration": {
+              "name": "duration",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": true,
+              "attributes": []
+            },
+            "isCustom": {
+              "name": "isCustom",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            },
+            "isActive": {
+              "name": "isActive",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            }
+          },
+          "syncable": true,
+          "pluralName": "WellnessActivities",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        }
+      },
+      "enums": {
+        "EventType": {
+          "name": "EventType",
+          "values": [
+            "event",
+            "wellness",
+            "task"
+          ]
+        },
+        "WellnessSessionCategory": {
+          "name": "WellnessSessionCategory",
+          "values": [
+            "mind",
+            "body"
+          ]
+        },
+        "WellnessSessionSubcategory": {
+          "name": "WellnessSessionSubcategory",
+          "values": [
+            "active",
+            "restorative"
+          ]
+        },
+        "WellnessSessionMood": {
+          "name": "WellnessSessionMood",
+          "values": [
+            "energized",
+            "calm",
+            "neutral",
+            "frustrated"
+          ]
+        },
+        "WellnessActivityCategory": {
+          "name": "WellnessActivityCategory",
+          "values": [
+            "mind",
+            "body"
+          ]
+        },
+        "WellnessActivitySubcategory": {
+          "name": "WellnessActivitySubcategory",
+          "values": [
+            "active",
+            "restorative"
+          ]
+        },
+        "UserPreferencesDefaultCalendarView": {
+          "name": "UserPreferencesDefaultCalendarView",
+          "values": [
+            "day",
+            "week",
+            "month"
+          ]
+        },
+        "EventWellnessActivityCategory": {
+          "name": "EventWellnessActivityCategory",
+          "values": [
+            "mind",
+            "body"
+          ]
+        }
+      },
+      "nonModels": {
+        "UserPreferences": {
+          "name": "UserPreferences",
+          "fields": {
+            "defaultCalendarView": {
+              "name": "defaultCalendarView",
+              "isArray": false,
+              "type": {
+                "enum": "UserPreferencesDefaultCalendarView"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "notificationsEnabled": {
+              "name": "notificationsEnabled",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            },
+            "wellnessReminders": {
+              "name": "wellnessReminders",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            }
+          }
+        },
+        "UserStats": {
+          "name": "UserStats",
+          "fields": {
+            "totalWellnessSessions": {
+              "name": "totalWellnessSessions",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "currentStreak": {
+              "name": "currentStreak",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "longestStreak": {
+              "name": "longestStreak",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "completionRate": {
+              "name": "completionRate",
+              "isArray": false,
+              "type": "Float",
+              "isRequired": false,
+              "attributes": []
+            }
+          }
+        },
+        "EventWellnessActivity": {
+          "name": "EventWellnessActivity",
+          "fields": {
+            "activityType": {
+              "name": "activityType",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "duration": {
+              "name": "duration",
+              "isArray": false,
+              "type": "Int",
+              "isRequired": false,
+              "attributes": []
+            },
+            "category": {
+              "name": "category",
+              "isArray": false,
+              "type": {
+                "enum": "EventWellnessActivityCategory"
+              },
+              "isRequired": false,
+              "attributes": []
+            }
+          }
+        }
+      }
+    }
+  },
   "version": "1.4"
 }
