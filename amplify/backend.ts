@@ -7,6 +7,7 @@
  *
  * Current resources:
  * - auth: Amazon Cognito authentication (email-based login)
+ * - data: DynamoDB for storing user data
  *
  * To add new resources:
  * 1. Create a resource definition file (e.g., ./data/resource.ts)

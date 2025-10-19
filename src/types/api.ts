@@ -1,0 +1,346 @@
+/**
+ * API Type Definitions
+ *
+ * Re-exports auto-generated GraphQL types with documentation.
+ * Source: src/API.ts (auto-generated from amplify/data/resource.ts)
+ *
+ * To regenerate types after schema changes:
+ * npx ampx generate graphql-client-code --out src/API.ts
+ *
+ * NEVER edit src/API.ts directly - changes will be overwritten.
+ * Add documentation and custom types HERE instead.
+ */
+
+// ============================================================================
+// RE-EXPORT EVERYTHING (This gives you access to all types)
+// ============================================================================
+// ============================================================================
+// IMPORT TYPES FOR DOCUMENTATION (So we can add comments)
+// ============================================================================
+import type {
+  // Models
+  User as GeneratedUser,
+  Event as GeneratedEvent,
+  WellnessSession as GeneratedWellnessSession,
+  WellnessActivity as GeneratedWellnessActivity,
+
+  // Input Types (for mutations)
+  CreateUserInput as GeneratedCreateUserInput,
+  UpdateUserInput as GeneratedUpdateUserInput,
+  CreateEventInput as GeneratedCreateEventInput,
+  UpdateEventInput as GeneratedUpdateEventInput,
+  CreateWellnessSessionInput as GeneratedCreateWellnessSessionInput,
+  CreateWellnessActivityInput as GeneratedCreateWellnessActivityInput,
+  UpdateWellnessActivityInput as GeneratedUpdateWellnessActivityInput,
+
+  // CustomTypes (nested objects)
+  UserPreferences as GeneratedUserPreferences,
+  UserStats as GeneratedUserStats,
+  EventWellnessActivity as GeneratedEventWellnessActivity,
+} from '../API';
+
+export * from '../API';
+
+// ============================================================================
+// MODEL TYPES (Main Data Models)
+// ============================================================================
+
+/**
+ * User Profile
+ *
+ * Represents a user's complete profile, preferences, and wellness stats.
+ *
+ * Key Fields:
+ * - id: Auto-generated UUID
+ * - email: Login email (required)
+ * - name: Display name (required)
+ * - profilePhoto: S3 URL to profile picture (optional)
+ * - joinedAt: Account creation timestamp
+ * - preferences: App settings (calendar view, notifications)
+ * - stats: Wellness tracking statistics (streaks, completion rate)
+ * - owner: Cognito user ID (auto-populated for authorization)
+ *
+ * Owner Field:
+ * The `owner` field is automatically set to the authenticated user's Cognito ID.
+ * Users can only read/write their own profile due to owner-based authorization.
+ */
+export type User = GeneratedUser;
+
+/**
+ * Calendar Event
+ *
+ * Represents scheduled items in the planner: events, tasks, or wellness activities.
+ *
+ * Event Types:
+ * - "event": Regular calendar event (meetings, appointments)
+ * - "wellness": Scheduled wellness activity from the wheel
+ * - "task": To-do item without a specific time
+ *
+ * Key Fields:
+ * - title: Event name (required)
+ * - startTime / endTime: ISO 8601 timestamps (required)
+ * - type: EventType enum (event, wellness, or task)
+ * - completed: Boolean for task completion status
+ * - wellnessActivity: Nested object with activity details (for wellness events)
+ */
+export type Event = GeneratedEvent;
+
+/**
+ * Wellness Session
+ *
+ * Tracks a completed wellness activity for analytics, streaks, and mood tracking.
+ *
+ * Used For:
+ * - Streak calculations (consecutive days)
+ * - Mood correlation analysis
+ * - Activity completion history
+ * - Time spent on wellness activities
+ *
+ * Key Fields:
+ * - activityId: Links to WellnessActivity (optional)
+ * - activityName: Name of the activity performed (required)
+ * - startedAt / completedAt: Timestamps for duration tracking
+ * - plannedDuration / actualDuration: Time in minutes
+ * - mood: User's post-activity mood (energized, calm, neutral, frustrated)
+ * - completed: Whether the session was finished
+ */
+export type WellnessSession = GeneratedWellnessSession;
+
+/**
+ * Wellness Activity
+ *
+ * User's custom wellness activities that appear on the wellness wheel.
+ *
+ * These are templates/presets that users create. When they complete an activity,
+ * a WellnessSession record is created linking back to this.
+ *
+ * Key Fields:
+ * - name: Activity name (e.g., "Morning Meditation")
+ * - category: "mind" or "body"
+ * - subcategory: "active" or "restorative"
+ * - duration: Default time in minutes
+ * - isCustom: True for user-created activities (default: true)
+ * - isActive: False to hide from wheel without deleting (soft delete)
+ */
+export type WellnessActivity = GeneratedWellnessActivity;
+
+// ============================================================================
+// INPUT TYPES (For Creating/Updating Records)
+// ============================================================================
+
+/**
+ * Create User Input
+ *
+ * Data required to create a new user profile.
+ *
+ * Differences from User type:
+ * - No `id` field (auto-generated by DynamoDB)
+ * - No `owner` field (auto-set to Cognito user ID)
+ * - No `createdAt` / `updatedAt` (auto-managed by Amplify)
+ * - No `__typename` (added by GraphQL response)
+ *
+ * Example:
+ * ```typescript
+ * const newUser: CreateUserInput = {
+ *   email: 'jane@example.com',
+ *   name: 'Jane Doe',
+ *   joinedAt: new Date().toISOString(),
+ *   preferences: {
+ *     defaultCalendarView: 'day',
+ *     notificationsEnabled: true,
+ *     wellnessReminders: true,
+ *   },
+ *   stats: {
+ *     totalWellnessSessions: 0,
+ *     currentStreak: 0,
+ *     longestStreak: 0,
+ *     completionRate: 0,
+ *   },
+ * };
+ * ```
+ */
+export type CreateUserInput = GeneratedCreateUserInput;
+
+/**
+ * Update User Input
+ *
+ * Data for updating an existing user profile.
+ * All fields except `id` are optional - only provide fields you want to change.
+ *
+ * Example:
+ * ```typescript
+ * const updates: UpdateUserInput = {
+ *   id: 'user-123',
+ *   name: 'Jane Smith', // Changed name
+ *   preferences: {
+ *     defaultCalendarView: 'week', // Changed view preference
+ *   },
+ * };
+ * ```
+ */
+export type UpdateUserInput = GeneratedUpdateUserInput;
+
+/**
+ * Create Event Input
+ *
+ * Data required to create a new calendar event.
+ *
+ * Example - Regular Event:
+ * ```typescript
+ * const meeting: CreateEventInput = {
+ *   title: 'Team Standup',
+ *   startTime: '2025-01-15T09:00:00Z',
+ *   endTime: '2025-01-15T09:30:00Z',
+ *   type: EventType.event,
+ *   completed: false,
+ * };
+ * ```
+ *
+ * Example - Wellness Event:
+ * ```typescript
+ * const meditation: CreateEventInput = {
+ *   title: 'Morning Meditation',
+ *   startTime: '2025-01-15T08:00:00Z',
+ *   endTime: '2025-01-15T08:15:00Z',
+ *   type: EventType.wellness,
+ *   completed: false,
+ *   wellnessActivity: {
+ *     activityType: 'Meditation',
+ *     duration: 15,
+ *     category: 'mind',
+ *   },
+ * };
+ * ```
+ */
+export type CreateEventInput = GeneratedCreateEventInput;
+
+/**
+ * Update Event Input
+ *
+ * Data for updating an existing event.
+ * All fields except `id` are optional.
+ */
+export type UpdateEventInput = GeneratedUpdateEventInput;
+
+/**
+ * Create Wellness Session Input
+ *
+ * Data required to log a completed wellness activity.
+ *
+ * Example:
+ * ```typescript
+ * const session: CreateWellnessSessionInput = {
+ *   activityName: 'Yoga',
+ *   category: WellnessSessionCategory.body,
+ *   subcategory: WellnessActivitySubcategory.active,
+ *   startedAt: '2025-01-15T07:00:00Z',
+ *   completedAt: '2025-01-15T07:30:00Z',
+ *   plannedDuration: 30,
+ *   actualDuration: 30,
+ *   completed: true,
+ *   mood: WellnessSessionMood.energized,
+ *   notes: 'Felt great!',
+ * };
+ * ```
+ */
+export type CreateWellnessSessionInput = GeneratedCreateWellnessSessionInput;
+
+/**
+ * Create Wellness Activity Input
+ *
+ * Data required to create a custom wellness activity.
+ *
+ * Example:
+ * ```typescript
+ * const activity: CreateWellnessActivityInput = {
+ *   name: 'Morning Stretching',
+ *   category: WellnessActivityCategory.body,
+ *   subcategory: WellnessActivitySubcategory.restorative,
+ *   description: 'Light stretching to wake up the body',
+ *   duration: 10,
+ *   isCustom: true,
+ *   isActive: true,
+ * };
+ * ```
+ */
+export type CreateWellnessActivityInput = GeneratedCreateWellnessActivityInput;
+
+/**
+ * Update Wellness Activity Input
+ *
+ * Data for updating a custom wellness activity.
+ * All fields except `id` are optional.
+ *
+ * To soft-delete an activity (hide from wheel):
+ * ```typescript
+ * const deactivate: UpdateWellnessActivityInput = {
+ *   id: 'activity-123',
+ *   isActive: false,
+ * };
+ * ```
+ */
+export type UpdateWellnessActivityInput = GeneratedUpdateWellnessActivityInput;
+
+// ============================================================================
+// CUSTOM TYPES (Nested Objects)
+// ============================================================================
+
+/**
+ * User Preferences
+ *
+ * Nested object containing app settings and preferences.
+ * Stored inside User.preferences field.
+ */
+export type UserPreferences = GeneratedUserPreferences;
+
+/**
+ * User Stats
+ *
+ * Nested object containing wellness tracking statistics.
+ * Stored inside User.stats field.
+ */
+export type UserStats = GeneratedUserStats;
+
+/**
+ * Event Wellness Activity
+ *
+ * Nested object containing wellness activity details.
+ * Stored inside Event.wellnessActivity field (for wellness-type events).
+ */
+export type EventWellnessActivity = GeneratedEventWellnessActivity;
+
+// ============================================================================
+// ENUMS (Allowed Values for Certain Fields)
+// ============================================================================
+
+/**
+ * Event Type Enum
+ *
+ * Determines how an event is displayed and handled in the UI.
+ * - event: Regular calendar event
+ * - wellness: Scheduled wellness activity
+ * - task: To-do item
+ */
+
+/**
+ * Wellness Session Mood Enum
+ *
+ * User's mood after completing a wellness activity.
+ * Used for analytics and mood correlation tracking.
+ * - energized: Feeling active and motivated
+ * - calm: Feeling relaxed and peaceful
+ * - neutral: No strong feeling either way
+ * - frustrated: Feeling stressed or negative
+ */
+
+/**
+ * Wellness Category Enums
+ *
+ * Category: Broad classification
+ * - mind: Mental/cognitive activities (meditation, journaling)
+ * - body: Physical activities (yoga, walking, stretching)
+ *
+ * Subcategory: Activity energy level
+ * - active: Higher energy activities (running, dancing)
+ * - restorative: Lower energy activities (stretching, breathing)
+ */
