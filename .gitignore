@@ -40,5 +40,8 @@ yarn-error.*
 /ios
 /android
 
+# AWS Amplify - IMPORTANT: This file is environment-specific
+amplify_outputs.json
+
 # Ignore MCP config
 cursor-mcp-config.json

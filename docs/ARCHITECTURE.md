@@ -1,41 +1,74 @@
-# Juno Technical Architecture Document
+# Juno - Technical Architecture Document
 
-**Version:** 1.0  
-**Last Updated:** October 7, 2025
+**Version:** 1.1  
+**Last Updated:** October 18, 2025  
+**Status:** In Active Development
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [System Architecture](#system-architecture)
-3. [Frontend Architecture](#frontend-architecture)
-4. [Backend Architecture](#backend-architecture)
-5. [Data Models](#data-models)
-6. [Authentication Flow](#authentication-flow)
-7. [API Operations](#api-operations)
-8. [State Management](#state-management)
+2. [Implementation Status](#implementation-status)
+3. [System Architecture](#system-architecture)
+4. [Data Models](#data-models)
+5. [Authentication & Authorization](#authentication--authorization)
+6. [Frontend Architecture](#frontend-architecture)
+7. [State Management](#state-management)
+8. [Service Layer](#service-layer)
+9. [Data Flow Examples](#data-flow-examples)
+10. [Security](#security)
+11. [Future Enhancements](#future-enhancements)
 
 ---
 
 ## Overview
 
-Juno is a self-care management application that integrates productivity planning with wellness activities. The application uses a serverless architecture built on AWS services with a React Native mobile frontend.
+Juno is a holistic self-care management app that integrates productivity planning with wellness activities. Built with React Native, AWS Amplify, and modern serverless architecture.
 
-### Technology Stack
+**Core Technologies:**
+- **Frontend:** React Native + Expo, TypeScript, NativeWind (Tailwind CSS)
+- **State Management:** Zustand for client state, TanStack Query for server state
+- **Backend:** AWS Amplify Gen 2, AppSync (GraphQL), DynamoDB, Cognito
+- **Authentication:** Amazon Cognito with email-based login
+- **Authorization:** Owner-based data filtering (automatic per-user isolation)
 
-| Layer | Technology |
-|-------|------------|
-| Mobile App | React Native + Expo |
-| State Management | Zustand |
-| Data Fetching | TanStack Query (React Query) |
-| Backend Platform | AWS Amplify |
-| Authentication | Amazon Cognito |
-| API Layer | AWS AppSync (GraphQL) |
-| Database | Amazon DynamoDB |
-| File Storage | Amazon S3 |
-| Styling | NativeWind (Tailwind CSS) |
-| Navigation | React Navigation |
+---
+
+## Implementation Status
+
+### ✅ Completed Features
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| **AWS Infrastructure** | ✅ Deployed | Cognito, AppSync, DynamoDB (4 tables) |
+| **Authentication System** | ✅ Working | Sign up, verify email, sign in, sign out |
+| **Data Layer** | ✅ Deployed | 4 DynamoDB tables with GraphQL API |
+| **Owner-Based Authorization** | ✅ Active | Automatic data filtering by user |
+| **Amplify Client Configuration** | ✅ Working | App connected to AWS backend |
+| **Auth Service Layer** | ✅ Implemented | Complete auth operations (src/services/auth.ts) |
+| **Zustand Stores** | ✅ Implemented | useAuthStore, usePlannerStore, useWellnessStore |
+| **TypeScript Types** | ✅ Generated | Auto-generated from GraphQL schema |
+| **Dev Environment** | ✅ Ready | ESLint, Prettier, Husky, path aliases |
+
+### ⏳ In Progress / Planned
+
+| Component | Status | Priority |
+|-----------|--------|----------|
+| **UI Screens** | 🔨 Next | Building planner, wellness, profile screens |
+| **Data Service Layers** | 📋 Planned | planner.ts, wellness.ts API services |
+| **React Query Integration** | 📋 Planned | Connect Zustand to AppSync GraphQL |
+| **Navigation** | 📋 Planned | React Navigation setup |
+| **Profile Photo Upload** | 📋 Planned | S3 integration for images |
+
+### 🔮 Future Enhancements
+
+- Google Calendar bidirectional sync
+- Google OAuth social login
+- Real-time sync with AppSync subscriptions
+- Offline support with local SQLite
+- Push notifications
+- Wearable device integration
 
 ---
 
@@ -45,66 +78,384 @@ Juno is a self-care management application that integrates productivity planning
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Juno Mobile App                         │
-│                  (React Native + Expo)                      │
-└──────────────────────┬──────────────────────────────────────┘
+│                     React Native App (Expo)                 │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │   Screens    │  │  Components  │  │    Stores    │    │
+│  │  (planner,   │  │   (UI, nav)  │  │   (Zustand)  │    │
+│  │  wellness,   │  │              │  │              │    │
+│  │  profile)    │  │              │  │              │    │
+│  └──────┬───────┘  └──────────────┘  └──────┬───────┘    │
+│         │                                     │             │
+│         └────────────┬────────────────────────┘             │
+│                      │                                      │
+│              ┌───────▼────────┐                            │
+│              │  Service Layer │                            │
+│              │  (auth.ts,     │                            │
+│              │   planner.ts,  │                            │
+│              │   wellness.ts) │                            │
+│              └───────┬────────┘                            │
+│                      │                                      │
+│              ┌───────▼────────┐                            │
+│              │ Amplify Client │                            │
+│              │  (configured   │                            │
+│              │   with outputs)│                            │
+│              └───────┬────────┘                            │
+└──────────────────────┼──────────────────────────────────────┘
                        │
-                       │ AWS Amplify JavaScript SDK
+                       │ HTTPS/GraphQL
                        │
-┌──────────────────────┴──────────────────────────────────────┐
-│                      AWS Amplify                            │
-│        (Simplifies interaction with AWS services)           │
-└───────┬──────────────────────┬────────────────────┬─────────┘
-        │                      │                    │
-        │                      │                    │
-┌───────▼────────┐    ┌───────▼────────┐   ┌──────▼─────────┐
-│   Amazon       │    │   AWS          │   │   Amazon       │
-│   Cognito      │    │   AppSync      │   │   S3           │
-│                │    │                │   │                │
-│  - Sign up     │    │  - GraphQL API │   │  - Profile     │
-│  - Login       │    │  - Real-time   │   │    photos      │
-│  - OAuth       │    │    sync        │   │  - User        │
-│  - JWT tokens  │    │  - Offline     │   │    uploads     │
-└────────────────┘    └───────┬────────┘   └────────────────┘
-                              │
-                              │ Resolvers
-                              │
-                      ┌───────▼────────┐
-                      │   Amazon       │
-                      │   DynamoDB     │
-                      │                │
-                      │  - Users       │
-                      │  - Events      │
-                      │  - Wellness    │
-                      └────────────────┘
+┌──────────────────────▼──────────────────────────────────────┐
+│                      AWS Cloud                              │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              Amazon Cognito (Authentication)         │  │
+│  │  • User Pools (email/password auth)                 │  │
+│  │  • JWT Token Generation & Validation                │  │
+│  │  • Email Verification                                │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                           │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │           AWS AppSync (GraphQL API)                  │  │
+│  │  • Auto-generated CRUD operations                    │  │
+│  │  • Owner-based authorization                         │  │
+│  │  • Real-time subscriptions (future)                  │  │
+│  └──────────────┬───────────────────────────────────────┘  │
+│                 │                                           │
+│  ┌──────────────▼───────────────────────────────────────┐  │
+│  │            Amazon DynamoDB (NoSQL Database)          │  │
+│  │                                                       │  │
+│  │  Tables:                                             │  │
+│  │  • User (profiles, preferences, stats)               │  │
+│  │  • Event (calendar events, tasks, wellness)          │  │
+│  │  • WellnessSession (completed activities)            │  │
+│  │  • WellnessActivity (custom user activities)         │  │
+│  │                                                       │  │
+│  │  All tables use owner field for data isolation       │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │             Amazon S3 (Future - File Storage)        │  │
+│  │  • Profile photos                                    │  │
+│  │  • User-uploaded content                             │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Component Interaction Flow
+### AWS Services Used
 
-**User Login:**
-1. User enters credentials in mobile app
-2. Amplify SDK sends request to Cognito
-3. Cognito verifies credentials, returns JWT token
-4. App stores token in Zustand (useAuthStore)
-5. App queries AppSync for user profile data
-6. AppSync retrieves user from DynamoDB
-7. User data populates throughout the app
+#### Amazon Cognito (Authentication)
+- **Purpose:** User registration, login, session management
+- **Features:** Email/password auth, email verification, JWT tokens
+- **Configuration:**
+  - Required attributes: email, name
+  - Optional attributes: preferredUsername
+  - Password policy: min 8 chars, uppercase, lowercase, numbers, symbols
 
-**Create Calendar Event:**
-1. User creates event in planner screen
-2. Event temporarily stored in Zustand (usePlannerStore)
-3. Amplify sends GraphQL mutation to AppSync
-4. AppSync executes resolver to save in DynamoDB Events table
-5. DynamoDB returns saved event with generated ID
-6. Zustand store updates with confirmed event data
+#### AWS AppSync (GraphQL API)
+- **Purpose:** GraphQL API layer between app and database
+- **API Endpoint:** `https://jghaagn4azhixbybbia5wtkg2i.appsync-api.us-east-1.amazonaws.com/graphql`
+- **Authorization:** Cognito User Pools (primary), AWS IAM (secondary)
+- **Features:**
+  - Auto-generated queries, mutations, subscriptions
+  - Type-safe TypeScript client code generation
+  - Owner-based authorization rules
 
-**Upload Profile Photo:**
-1. User selects photo from device
-2. Amplify Storage uploads image to S3
-3. S3 returns secure URL
-4. App sends GraphQL mutation to update user profile with photo URL
-5. AppSync saves URL to DynamoDB Users table
-6. Profile photo displays using S3 URL
+#### Amazon DynamoDB (NoSQL Database)
+- **Purpose:** Application data storage
+- **Tables:** 4 tables (User, Event, WellnessSession, WellnessActivity)
+- **Design Pattern:** Single entity per table, no relationships
+- **Authorization:** Owner field automatically filters data per user
+- **Performance:** Single-digit millisecond latency, automatic scaling
+
+---
+
+## Data Models
+
+### Owner-Based Authorization Pattern
+
+**Critical Design Decision:** Instead of using foreign keys and Global Secondary Indexes (GSIs), Juno uses Amplify's owner-based authorization.
+
+**How it works:**
+1. Every table has an automatic `owner` field (added by Amplify)
+2. The `owner` field stores the Cognito user ID (sub claim from JWT)
+3. All GraphQL queries automatically filter by `owner === current_user_id`
+4. Users can ONLY see/modify their own data
+5. No explicit relationships needed between tables
+
+**Benefits:**
+- ✅ Automatic multi-tenant data isolation
+- ✅ Simpler schema (no foreign keys)
+- ✅ Better security (impossible to access other users' data)
+- ✅ No need for complex GSI queries
+
+---
+
+### User Table
+
+**Purpose:** Store user profiles, preferences, and wellness statistics
+
+**Schema:**
+```graphql
+type User @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  email: String!
+  name: String!
+  profilePhoto: AWSURL
+  joinedAt: AWSDateTime!
+  
+  preferences: UserPreferences
+  stats: UserStats
+}
+
+type UserPreferences {
+  defaultCalendarView: UserPreferencesDefaultCalendarView
+  notificationsEnabled: Boolean
+  wellnessReminders: Boolean
+}
+
+type UserStats {
+  totalWellnessSessions: Int
+  currentStreak: Int
+  longestStreak: Int
+  completionRate: Float
+}
+```
+
+**Key Fields:**
+- `id`: Auto-generated UUID (DynamoDB partition key)
+- `owner`: Auto-added by Amplify (Cognito user ID)
+- `email`: User's email address (from Cognito)
+- `preferences`: Nested object for app settings
+- `stats`: Nested object for wellness metrics
+
+**Default Values:**
+Set in application code, not in schema:
+```typescript
+await client.models.User.create({
+  email: user.email,
+  name: user.name,
+  joinedAt: new Date().toISOString(),
+  preferences: {
+    defaultCalendarView: 'day',
+    notificationsEnabled: true,
+    wellnessReminders: true,
+  },
+  stats: {
+    totalWellnessSessions: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    completionRate: 0.0,
+  },
+});
+```
+
+---
+
+### Event Table
+
+**Purpose:** Calendar events, tasks, and scheduled wellness activities
+
+**Schema:**
+```graphql
+type Event @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  title: String!
+  startTime: AWSDateTime!
+  endTime: AWSDateTime!
+  
+  type: EventType
+  completed: Boolean @default(value: "false")
+  description: String
+  
+  wellnessActivity: EventWellnessActivity
+}
+
+enum EventType {
+  event
+  wellness
+  task
+}
+
+type EventWellnessActivity {
+  activityType: String
+  duration: Int
+  category: EventWellnessActivityCategory
+}
+
+enum EventWellnessActivityCategory {
+  mind
+  body
+}
+```
+
+**Key Fields:**
+- `id`: Auto-generated UUID
+- `owner`: Auto-added (filters to current user's events only)
+- `type`: Differentiates calendar events, tasks, and wellness activities
+- `wellnessActivity`: Optional nested data for wellness-type events
+
+**Query Pattern:**
+```typescript
+// Get all events for current user between dates
+const { data } = await client.models.Event.list({
+  filter: {
+    startTime: { ge: startDate },
+    endTime: { le: endDate },
+  }
+});
+// Owner filtering happens automatically!
+```
+
+---
+
+### WellnessSession Table
+
+**Purpose:** Track completed wellness activities for streak/analytics
+
+**Schema:**
+```graphql
+type WellnessSession @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  activityId: ID
+  activityName: String!
+  category: WellnessSessionCategory
+  subcategory: WellnessSessionSubcategory
+  
+  startedAt: AWSDateTime!
+  completedAt: AWSDateTime
+  plannedDuration: Int
+  actualDuration: Int
+  completed: Boolean @default(value: "false")
+  
+  mood: WellnessSessionMood
+  notes: String
+}
+
+enum WellnessSessionCategory {
+  mind
+  body
+}
+
+enum WellnessSessionSubcategory {
+  active
+  restorative
+}
+
+enum WellnessSessionMood {
+  energized
+  calm
+  neutral
+  frustrated
+}
+```
+
+**Key Fields:**
+- `activityId`: Optional reference to WellnessActivity (soft link, not enforced)
+- `startedAt`/`completedAt`: For duration tracking
+- `mood`: Post-activity mood logging
+
+---
+
+### WellnessActivity Table
+
+**Purpose:** Custom wellness activities created by users
+
+**Schema:**
+```graphql
+type WellnessActivity @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  name: String!
+  category: WellnessActivityCategory
+  subcategory: WellnessActivitySubcategory
+  duration: Int!
+  
+  isCustom: Boolean
+  isActive: Boolean
+  description: String
+}
+```
+
+**Key Fields:**
+- `isCustom`: True if user-created, false if preset
+- `isActive`: Soft delete flag (deactivate without deleting)
+
+---
+
+## Authentication & Authorization
+
+### Sign Up Flow
+
+```
+1. User enters email, password, name
+   ↓
+2. App calls auth service: signUp({ email, password, name })
+   ↓
+3. Amplify Auth → Cognito User Pool (creates account)
+   ↓
+4. Cognito sends verification code to email
+   ↓
+5. User enters code → confirmSignUpCode({ email, code })
+   ↓
+6. Cognito activates account
+   ↓
+7. User auto-logged in, JWT tokens issued
+   ↓
+8. App creates User profile in DynamoDB (with owner field)
+```
+
+### Login Flow
+
+```
+1. User enters email, password
+   ↓
+2. App calls: signIn({ email, password })
+   ↓
+3. Amplify Auth → Cognito (validates credentials)
+   ↓
+4. Cognito returns JWT tokens:
+   - ID Token (user attributes + sub claim)
+   - Access Token (for API calls)
+   - Refresh Token (30-day validity)
+   ↓
+5. Tokens stored in device keychain (automatic via Amplify)
+   ↓
+6. useAuthStore.login(user, token) updates state
+   ↓
+7. App queries AppSync for full user profile
+   ↓
+8. User redirected to main app screens
+```
+
+### Token Refresh (Automatic)
+
+```
+1. Access token expires after 1 hour
+   ↓
+2. Amplify detects expired token on next API call
+   ↓
+3. Amplify uses refresh token to get new tokens
+   ↓
+4. New tokens replace old tokens (transparent to user)
+   ↓
+5. If refresh token expired (30 days), user must re-login
+```
+
+### Logout Flow
+
+```
+1. User taps logout button
+   ↓
+2. App calls: signOut()
+   ↓
+3. Amplify revokes tokens in Cognito
+   ↓
+4. useAuthStore.logout() clears local state
+   ↓
+5. TanStack Query cache cleared
+   ↓
+6. User redirected to login screen
+```
 
 ---
 
@@ -114,560 +465,141 @@ Juno is a self-care management application that integrates productivity planning
 
 ```
 src/
-├── screens/              # Screen components organized by feature
-│   ├── planner/         # Calendar, day view, task management
-│   ├── wellness/        # Wheel of Wellness, activity selection
-│   ├── profile/         # User profile and settings
-│   └── onboarding/      # First-time user setup flow
-├── components/          # Shared/reusable components
-│   ├── navigation/      # Bottom tab navigation components
+├── screens/              # Feature-based screen components
+│   ├── planner/         # Calendar screens (day/week/month views)
+│   ├── wellness/        # Wellness wheel, activity selection, timer
+│   ├── profile/         # User profile, analytics dashboard
+│   └── onboarding/      # First-time user wellness setup
+│
+├── components/          # Reusable UI components
+│   ├── navigation/      # Tab bar, drawer navigation
 │   ├── ui/              # Buttons, cards, inputs, etc.
 │   └── wellness/        # Wellness wheel, activity cards
-├── stores/              # Zustand state management
-│   ├── useAuthStore.ts        # Authentication state
-│   ├── usePlannerStore.ts     # Calendar events and tasks
-│   └── useWellnessStore.ts    # Wellness activities and sessions
-├── services/            # API integration layer
-│   ├── auth.ts          # Cognito authentication
-│   ├── planner.ts       # Calendar/event operations
-│   └── wellness.ts      # Wellness activity operations
+│
+├── stores/              # ✅ Zustand state management (implemented)
+│   ├── useAuthStore.ts        # Auth state, user, token
+│   ├── usePlannerStore.ts     # Events, currentDate, CRUD operations
+│   └── useWellnessStore.ts    # Habits, currentSession, streak
+│
+├── services/            # ✅ API integration layer (auth implemented)
+│   ├── auth.ts         # ✅ Cognito auth operations (working)
+│   ├── planner.ts      # 📋 Event CRUD operations (planned)
+│   └── wellness.ts     # 📋 Wellness operations (planned)
+│
 ├── types/               # TypeScript type definitions
+│   ├── user.ts         # 📋 User-related types
+│   ├── event.ts        # 📋 Event-related types
+│   └── wellness.ts     # 📋 Wellness-related types
+│
 └── utils/               # Helper functions
+    ├── date-utils.ts   # 📋 Date formatting/manipulation
+    ├── validation.ts   # 📋 Form validation helpers
+    └── constants.ts    # 📋 App-wide constants
 ```
 
-### Navigation Structure
-
-- **Bottom Tab Navigation:** Primary navigation between main sections (Planner, Wellness, Profile)
-- **Stack Navigation:** Within each section for detailed screens and flows
-- **Modal Navigation:** For add forms, settings, and temporary overlays
-
----
-
-## Backend Architecture
-
-### AWS Services Overview
-
-#### Amazon Cognito
-**Purpose:** User authentication and authorization
-
-**Features Used:**
-- User pools for email/password authentication
-- JWT token generation and validation
-- Google OAuth integration for social login
-- Password reset and email verification
-- Multi-factor authentication (future)
-
-**User Pool Configuration:**
-- Attributes: email (required), name, phone_number (optional)
-- Password policy: Minimum 8 characters, require uppercase, lowercase, numbers
-- Token expiration: Access token (1 hour), Refresh token (30 days)
-
-#### AWS AppSync
-**Purpose:** GraphQL API layer
-
-**Features Used:**
-- GraphQL queries for data retrieval
-- GraphQL mutations for data modification
-- Real-time subscriptions for live updates
-- Conflict resolution for offline sync
-- Fine-grained authorization rules
-
-**Authorization Modes:**
-- Amazon Cognito User Pools (primary)
-- API Key (for public data, if needed)
-
-#### Amazon DynamoDB
-**Purpose:** NoSQL database for application data
-
-**Features Used:**
-- Single-table design with multiple entity types
-- Global Secondary Indexes (GSI) for flexible querying
-- Point-in-time recovery for data backup
-- On-demand capacity pricing model
-
-**Performance Characteristics:**
-- Single-digit millisecond latency
-- Automatic scaling based on traffic
-- Built-in caching with DAX (future optimization)
-
-#### Amazon S3
-**Purpose:** Object storage for user-generated content
-
-**Features Used:**
-- Secure file upload/download
-- Pre-signed URLs for temporary access
-- Automatic image optimization (future)
-- CloudFront CDN integration (future)
-
----
-
-## Data Models
-
-### Users Table
-
-**Primary Key:** `userId` (Partition Key)
-
-**Attributes:**
-
-```json
-{
-  "userId": "string (UUID)",
-  "email": "string (unique)",
-  "name": "string",
-  "profilePhoto": "string (S3 URL)",
-  "joinedAt": "string (ISO 8601 timestamp)",
-  "preferences": {
-    "defaultCalendarView": "string (day|week|month)",
-    "notificationsEnabled": "boolean",
-    "wellnessReminders": "boolean",
-    "activityPreferences": ["string (mind|body)"],
-    "availableTimeSlots": ["string (morning|afternoon|evening)"],
-    "activityDurations": ["number (minutes)"]
-  },
-  "stats": {
-    "totalWellnessSessions": "number",
-    "currentStreak": "number",
-    "longestStreak": "number",
-    "completionRate": "number (0-1)"
-  }
-}
-```
-
-**Indexes:**
-- Primary Key: `userId`
-
----
-
-### Events Table
-
-**Primary Key:** `eventId` (Partition Key)
-
-**Global Secondary Index:** `userId-startTime-index`
-- Partition Key: `userId`
-- Sort Key: `startTime`
-
-**Attributes:**
-
-```json
-{
-  "eventId": "string (UUID)",
-  "userId": "string (UUID, FK to Users)",
-  "title": "string",
-  "startTime": "string (ISO 8601 timestamp)",
-  "endTime": "string (ISO 8601 timestamp)",
-  "type": "string (event|wellness|task)",
-  "completed": "boolean",
-  "description": "string (optional)",
-  "googleEventId": "string (optional, for sync)",
-  "syncStatus": "string (synced|pending|failed)",
-  "lastModifiedAt": "string (ISO 8601 timestamp)",
-  "localChanges": "boolean",
-  "wellnessActivity": {
-    "activityType": "string (optional)",
-    "duration": "number (optional)",
-    "category": "string (mind|body, optional)"
-  }
-}
-```
-
-**Indexes:**
-- Primary Key: `eventId`
-- GSI: `userId-startTime-index` (for querying user's events by date)
-
-**Query Patterns:**
-1. Get all events for a user within a date range
-   - Use GSI with `userId` and `startTime` between conditions
-2. Get a specific event by ID
-   - Use Primary Key query
-
----
-
-### Wellness Sessions Table
-
-**Primary Key:** `sessionId` (Partition Key)
-
-**Global Secondary Index:** `userId-completedAt-index`
-- Partition Key: `userId`
-- Sort Key: `completedAt`
-
-**Attributes:**
-
-```json
-{
-  "sessionId": "string (UUID)",
-  "userId": "string (UUID, FK to Users)",
-  "activityId": "string (UUID, FK to custom activities)",
-  "activityName": "string",
-  "category": "string (mind|body)",
-  "subcategory": "string (active|restorative)",
-  "startedAt": "string (ISO 8601 timestamp)",
-  "completedAt": "string (ISO 8601 timestamp)",
-  "plannedDuration": "number (minutes)",
-  "actualDuration": "number (minutes)",
-  "completed": "boolean",
-  "mood": "string (energized|calm|neutral|frustrated, optional)",
-  "notes": "string (optional)",
-  "totalSpins": "number (how many times user spun wheel)",
-  "skippedActivities": ["string (activity names)"]
-}
-```
-
-**Indexes:**
-- Primary Key: `sessionId`
-- GSI: `userId-completedAt-index` (for querying user's wellness history)
-
----
-
-### Wellness Activities Table (Custom User Activities)
-
-**Primary Key:** `activityId` (Partition Key)
-
-**Global Secondary Index:** `userId-index`
-- Partition Key: `userId`
-
-**Attributes:**
-
-```json
-{
-  "activityId": "string (UUID)",
-  "userId": "string (UUID, FK to Users)",
-  "name": "string",
-  "category": "string (mind|body)",
-  "subcategory": "string (active|restorative)",
-  "duration": "number (minutes)",
-  "isCustom": "boolean (true for user-created)",
-  "createdAt": "string (ISO 8601 timestamp)",
-  "isActive": "boolean (user can deactivate without deleting)"
-}
-```
-
-**Indexes:**
-- Primary Key: `activityId`
-- GSI: `userId-index` (for querying user's custom activities)
-
----
-
-## Authentication Flow
-
-### Sign Up Flow
-
-1. **User Input:** User provides email, password, name
-2. **Cognito Request:** App sends sign-up request via Amplify Auth
-3. **Email Verification:** Cognito sends verification code to email
-4. **Code Confirmation:** User enters verification code
-5. **Account Activation:** Cognito activates user account
-6. **Profile Creation:** App creates user profile in DynamoDB Users table
-7. **Auto Login:** User is automatically logged in after confirmation
-
-### Login Flow
-
-1. **User Input:** User provides email and password
-2. **Cognito Authentication:** Amplify Auth sends credentials to Cognito
-3. **Token Generation:** Cognito validates and returns:
-   - ID Token (contains user attributes)
-   - Access Token (for API authorization)
-   - Refresh Token (for getting new tokens)
-4. **Store Tokens:** Tokens stored securely in device keychain (handled by Amplify)
-5. **Update State:** JWT token and user info stored in Zustand (useAuthStore)
-6. **Fetch Profile:** App queries DynamoDB via AppSync for full user profile
-7. **Navigate:** User redirected to main app screens
-
-### Google OAuth Flow
-
-1. **User Taps:** "Sign in with Google" button
-2. **Google OAuth:** Opens Google login in secure browser
-3. **User Authorizes:** User grants permissions to Juno
-4. **Token Exchange:** Google returns authorization code
-5. **Cognito Federation:** Amplify exchanges code with Cognito
-6. **Account Linking:** Cognito creates or links to existing user account
-7. **Same as Login:** Continues with standard login flow (tokens, profile fetch)
-
-### Token Refresh Flow
-
-1. **Token Expiration:** Access token expires after 1 hour
-2. **Automatic Refresh:** Amplify automatically uses refresh token
-3. **New Tokens:** Cognito issues new access and ID tokens
-4. **Transparent:** Happens in background, user doesn't notice
-5. **Session Timeout:** If refresh token expires (30 days), user must re-login
-
-### Logout Flow
-
-1. **User Action:** User taps logout button
-2. **Clear State:** Zustand stores reset (useAuthStore.logout())
-3. **Revoke Tokens:** Amplify signs out user from Cognito
-4. **Clear Cache:** TanStack Query cache is cleared
-5. **Navigate:** User redirected to welcome/login screen
-
----
-
-## API Operations
-
-### GraphQL Schema Overview
-
-#### Queries
-
-```graphql
-# Get current user profile
-query GetUser($userId: ID!) {
-  getUser(userId: $userId) {
-    userId
-    email
-    name
-    profilePhoto
-    preferences {
-      defaultCalendarView
-      notificationsEnabled
-      wellnessReminders
-    }
-    stats {
-      totalWellnessSessions
-      currentStreak
-      longestStreak
-      completionRate
-    }
-  }
-}
-
-# Get events for a user within date range
-query ListEventsByUser($userId: ID!, $startTime: AWSDateTime!, $endTime: AWSDateTime!) {
-  listEventsByUser(userId: $userId, startTime: $startTime, endTime: $endTime) {
-    items {
-      eventId
-      title
-      startTime
-      endTime
-      type
-      completed
-      wellnessActivity {
-        activityType
-        duration
-      }
-    }
-  }
-}
-
-# Get wellness sessions for a user
-query ListWellnessSessions($userId: ID!, $limit: Int) {
-  listWellnessSessions(userId: $userId, limit: $limit) {
-    items {
-      sessionId
-      activityName
-      category
-      startedAt
-      completedAt
-      actualDuration
-      mood
-    }
-  }
-}
-
-# Get user's custom wellness activities
-query ListUserActivities($userId: ID!) {
-  listUserActivities(userId: $userId) {
-    items {
-      activityId
-      name
-      category
-      subcategory
-      duration
-      isActive
-    }
-  }
-}
-```
-
-#### Mutations
-
-```graphql
-# Create a new calendar event
-mutation CreateEvent($input: CreateEventInput!) {
-  createEvent(input: $input) {
-    eventId
-    userId
-    title
-    startTime
-    endTime
-    type
-    completed
-  }
-}
-
-# Update an existing event
-mutation UpdateEvent($input: UpdateEventInput!) {
-  updateEvent(input: $input) {
-    eventId
-    title
-    startTime
-    endTime
-    completed
-  }
-}
-
-# Delete an event
-mutation DeleteEvent($eventId: ID!) {
-  deleteEvent(eventId: $eventId) {
-    eventId
-  }
-}
-
-# Create wellness session
-mutation CreateWellnessSession($input: CreateWellnessSessionInput!) {
-  createWellnessSession(input: $input) {
-    sessionId
-    userId
-    activityName
-    startedAt
-    completedAt
-    actualDuration
-  }
-}
-
-# Create custom wellness activity
-mutation CreateWellnessActivity($input: CreateWellnessActivityInput!) {
-  createWellnessActivity(input: $input) {
-    activityId
-    userId
-    name
-    category
-    duration
-  }
-}
-
-# Update user profile
-mutation UpdateUser($input: UpdateUserInput!) {
-  updateUser(input: $input) {
-    userId
-    name
-    profilePhoto
-    preferences {
-      defaultCalendarView
-      notificationsEnabled
-    }
-  }
-}
-```
-
-#### Subscriptions (Future)
-
-```graphql
-# Subscribe to event changes
-subscription OnEventChange($userId: ID!) {
-  onEventChange(userId: $userId) {
-    eventId
-    title
-    startTime
-    type
-    completed
-  }
-}
-```
+### Configuration
+
+**TypeScript Config (tsconfig.json):**
+- Strict mode enabled
+- Path aliases: `@/*` → `src/*`
+- Excludes: `amplify/` folder (CommonJS conflict)
+
+**Code Quality:**
+- ESLint + Prettier for formatting
+- Husky pre-commit hooks for linting
+- Lint-staged for efficient checks
 
 ---
 
 ## State Management
 
-### Zustand Store Architecture
-
-Juno uses three primary Zustand stores for client-side state management:
+### Zustand Stores (✅ Implemented)
 
 #### useAuthStore
 
-**Purpose:** Manages authentication state and user session
+**Purpose:** Manage authentication state across the app
 
 **State:**
-- `user`: Current user object (null when logged out)
-- `token`: JWT access token
-- `isAuthenticated`: Boolean flag for auth status
-
-**Actions:**
-- `login(user, token)`: Sets user and token, marks as authenticated
-- `logout()`: Clears all auth state
+```typescript
+interface AuthState {
+  user: User | null;           // Current user object
+  token: string | null;        // JWT token for API calls
+  isAuthenticated: boolean;    // Quick auth check
+  
+  // Actions
+  login: (user: User, token: string) => void;
+  logout: () => void;
+}
+```
 
 **Usage:**
 ```typescript
 const { user, isAuthenticated, login, logout } = useAuthStore();
+
+// After successful authentication
+login(user, token);
+
+// Check auth status
+if (!isAuthenticated) {
+  navigate('Login');
+}
+
+// Logout
+logout();
 ```
 
 ---
 
 #### usePlannerStore
 
-**Purpose:** Manages calendar events, tasks, and date selection
+**Purpose:** Manage calendar events, tasks, and date selection
 
 **State:**
-- `events`: Array of all calendar events
-- `currentDate`: Currently selected date (YYYY-MM-DD format)
-
-**Actions:**
-- `addEvent(event)`: Adds new event to local state
-- `updateEvent(id, updates)`: Updates existing event
-- `deleteEvent(id)`: Removes event from state
-- `setCurrentDate(date)`: Changes currently viewed date
+```typescript
+interface PlannerState {
+  events: Event[];              // All user events
+  currentDate: string;          // Currently viewed date (YYYY-MM-DD)
+  
+  // Actions
+  addEvent: (event: Event) => void;
+  updateEvent: (id: string, updates: Partial<Event>) => void;
+  deleteEvent: (id: string) => void;
+  setCurrentDate: (date: string) => void;
+}
+```
 
 **Usage:**
 ```typescript
 const { events, currentDate, addEvent, updateEvent } = usePlannerStore();
-```
 
-**Synchronization:**
-- Local state updated immediately for UI responsiveness
-- Changes sent to backend via TanStack Query mutations
-- Backend responses update store with confirmed data (including generated IDs)
-
----
-
-#### useWellnessStore
-
-**Purpose:** Manages wellness activities, sessions, and tracking
-
-**State:**
-- `habits`: Array of user's wellness activities
-- `currentSession`: Active session object (null when no session running)
-- `streak`: Current consecutive days of wellness activities
-
-**Actions:**
-- `addHabit(habit)`: Adds wellness activity to user's habits
-- `removeHabit(id)`: Removes activity from habits
-- `startSession(activity)`: Begins wellness session with timestamp
-- `completeSession()`: Ends session, increments streak
-
-**Usage:**
-```typescript
-const { habits, currentSession, streak, startSession } = useWellnessStore();
-```
-
----
-
-### TanStack Query Integration
-
-TanStack Query handles server state synchronization between Zustand stores and AWS backend.
-
-**Key Patterns:**
-
-**Queries (Data Fetching):**
-```typescript
-// Fetch user's events
-const { data: events } = useQuery({
-  queryKey: ['events', userId, date],
-  queryFn: () => fetchEvents(userId, date),
-  onSuccess: (data) => {
-    // Sync to Zustand store
-    usePlannerStore.setState({ events: data });
-  }
+// Add new event (optimistic update)
+addEvent({
+  id: generateId(),
+  title: 'Team Meeting',
+  startTime: '2025-10-19T14:00:00Z',
+  endTime: '2025-10-19T15:00:00Z',
+  type: 'event',
+  completed: false,
 });
+
+// Update event
+updateEvent(eventId, { completed: true });
+
+// Navigate to different date
+setCurrentDate('2025-10-20');
 ```
 
-**Mutations (Data Updates):**
+**Synchronization with Backend:**
 ```typescript
-// Create new event
+// TanStack Query mutation (planned)
 const createEventMutation = useMutation({
-  mutationFn: (newEvent) => createEvent(newEvent),
-  onMutate: async (newEvent) => {
-    // Optimistic update - add to Zustand immediately
+  mutationFn: (newEvent) => client.models.Event.create(newEvent),
+  onMutate: (newEvent) => {
+    // Optimistic update
     usePlannerStore.getState().addEvent(newEvent);
   },
   onSuccess: (savedEvent) => {
-    // Update with confirmed data from backend
+    // Update with server response (includes generated ID)
     usePlannerStore.getState().updateEvent(savedEvent.id, savedEvent);
   },
   onError: (error, newEvent) => {
@@ -679,47 +611,696 @@ const createEventMutation = useMutation({
 
 ---
 
-## Security Considerations
+#### useWellnessStore
 
-### Authentication
-- All API requests require valid JWT token from Cognito
-- Tokens stored securely in device keychain (iOS) or Keystore (Android)
-- Automatic token refresh prevents session interruption
-- Logout properly revokes tokens on server side
+**Purpose:** Manage wellness habits, active sessions, and streak tracking
 
-### Authorization
-- AppSync enforces user-level data access
-- Users can only query/modify their own data
-- Authorization rules defined in GraphQL schema directives
+**State:**
+```typescript
+interface WellnessState {
+  habits: WellnessActivity[];           // User's wellness activities
+  currentSession: WellnessSession | null;  // Active session (null if none)
+  streak: number;                       // Consecutive days of activity
+  
+  // Actions
+  addHabit: (habit: WellnessActivity) => void;
+  removeHabit: (id: string) => void;
+  startSession: (activity: WellnessActivity) => void;
+  completeSession: () => void;
+}
+```
 
-### Data Privacy
-- User data encrypted at rest in DynamoDB
-- S3 objects use pre-signed URLs with expiration
-- Profile photos have private access by default
-- No sensitive data logged or tracked
+**Usage:**
+```typescript
+const { habits, currentSession, streak, startSession, completeSession } = useWellnessStore();
+
+// Start wellness session
+startSession({
+  id: 'meditation-1',
+  name: 'Morning Meditation',
+  category: 'mind',
+  subcategory: 'restorative',
+  duration: 15,
+  isCustom: false,
+});
+
+// Complete session (increments streak)
+completeSession();
+
+// Add custom habit
+addHabit({
+  id: generateId(),
+  name: 'Yoga Practice',
+  category: 'body',
+  subcategory: 'active',
+  duration: 30,
+  isCustom: true,
+});
+```
+
+---
+
+## Service Layer
+
+### Auth Service (✅ Implemented)
+
+**File:** `src/services/auth.ts`
+
+**Functions:**
+
+```typescript
+// Sign up new user
+async function signUp({ email, password, name }): Promise<SignUpResult>
+
+// Confirm email verification code
+async function confirmSignUpCode({ email, confirmationCode }): Promise<ConfirmResult>
+
+// Sign in existing user
+async function signIn({ email, password }): Promise<SignInResult>
+
+// Sign out current user
+async function signOut(): Promise<void>
+
+// Get current authenticated user
+async function getCurrentUser(): Promise<User>
+
+// Get current auth session (tokens)
+async function getAuthSession(): Promise<AuthSession>
+```
+
+**Example Usage:**
+```typescript
+import { signUp, signIn, getCurrentUser } from '@/services/auth';
+
+// Sign up
+const result = await signUp({
+  email: 'jane@example.com',
+  password: 'SecurePass123!',
+  name: 'Jane Doe',
+});
+
+if (!result.isSignUpComplete) {
+  // Show verification code screen
+  const confirmResult = await confirmSignUpCode({
+    email: 'jane@example.com',
+    confirmationCode: '123456',
+  });
+}
+
+// Sign in
+const { success, user, token } = await signIn({
+  email: 'jane@example.com',
+  password: 'SecurePass123!',
+});
+
+if (success) {
+  useAuthStore.getState().login(user, token);
+}
+```
+
+---
+
+### Planner Service (📋 Planned)
+
+**File:** `src/services/planner.ts` (to be implemented)
+
+**Planned Functions:**
+```typescript
+async function createEvent(event: CreateEventInput): Promise<Event>
+async function updateEvent(id: string, updates: UpdateEventInput): Promise<Event>
+async function deleteEvent(id: string): Promise<void>
+async function listEvents(startDate: string, endDate: string): Promise<Event[]>
+async function getEvent(id: string): Promise<Event>
+```
+
+---
+
+### Wellness Service (📋 Planned)
+
+**File:** `src/services/wellness.ts` (to be implemented)
+
+**Planned Functions:**
+```typescript
+async function createSession(session: CreateSessionInput): Promise<WellnessSession>
+async function completeSession(id: string, updates: CompleteSessionInput): Promise<WellnessSession>
+async function listSessions(limit?: number): Promise<WellnessSession[]>
+async function createActivity(activity: CreateActivityInput): Promise<WellnessActivity>
+async function listActivities(): Promise<WellnessActivity[]>
+```
+
+---
+
+## Data Flow Examples
+
+### Example 1: User Login
+
+```
+1. User enters credentials in LoginScreen
+   ↓
+2. LoginScreen calls: await signIn({ email, password })
+   ↓
+3. auth.ts service → Amplify.Auth.signIn()
+   ↓
+4. Amplify → Cognito API (validates credentials)
+   ↓
+5. Cognito returns JWT tokens
+   ↓
+6. auth.ts returns { success: true, user, token }
+   ↓
+7. LoginScreen calls: useAuthStore.login(user, token)
+   ↓
+8. Zustand updates state, triggers re-renders
+   ↓
+9. App.tsx detects isAuthenticated=true
+   ↓
+10. Navigation redirects to PlannerDayScreen
+```
+
+---
+
+### Example 2: Create Calendar Event (Future)
+
+```
+1. User fills out form in AddEventScreen
+   ↓
+2. AddEventScreen calls: createEventMutation.mutate(newEvent)
+   ↓
+3. TanStack Query onMutate: usePlannerStore.addEvent(newEvent)
+   ↓  (Optimistic update - UI shows event immediately)
+4. planner.ts service → client.models.Event.create()
+   ↓
+5. Amplify → AppSync GraphQL mutation
+   ↓
+6. AppSync adds owner field, saves to DynamoDB
+   ↓
+7. DynamoDB returns saved event (with generated ID)
+   ↓
+8. TanStack Query onSuccess: usePlannerStore.updateEvent(id, savedEvent)
+   ↓
+9. Zustand updates event with confirmed data
+   ↓
+10. UI shows final event with server ID
+```
+
+---
+
+### Example 3: Complete Wellness Session
+
+```
+1. User finishes meditation, taps "Complete"
+   ↓
+2. CompletionScreen calls: useWellnessStore.completeSession()
+   ↓
+3. Zustand clears currentSession, increments streak
+   ↓
+4. UI shows celebration animation
+   ↓
+5. (Future) wellness.ts → client.models.WellnessSession.create()
+   ↓
+6. AppSync saves session to DynamoDB
+   ↓
+7. (Future) Query user stats to update streak counter
+   ↓
+8. Navigation returns to planner view
+```
+
+---
+
+## Security
+
+### Authentication Security
+
+**Token Storage:**
+- Amplify automatically stores tokens in device keychain (iOS) or Keystore (Android)
+- Tokens encrypted at rest
+- Never stored in AsyncStorage or local state
+
+**Token Lifecycle:**
+- Access tokens expire after 1 hour
+- Refresh tokens valid for 30 days
+- Automatic refresh handled by Amplify (transparent to user)
+
+**Password Policy:**
+- Minimum 8 characters
+- Requires: uppercase, lowercase, number, symbol
+- Enforced by Cognito
+
+---
+
+### Authorization Security
+
+**Owner-Based Data Isolation:**
+- Every DynamoDB record has an `owner` field (Cognito user ID)
+- AppSync resolvers automatically filter all queries by owner
+- Users can ONLY access their own data
+- No risk of data leakage between users
+
+**GraphQL Resolver Example:**
+```
+User queries: listEvents()
+  ↓
+AppSync resolver adds filter: owner = {current_user_cognito_id}
+  ↓
+DynamoDB returns only events where owner matches
+  ↓
+User receives only their own events
+```
+
+---
+
+### Data Encryption
+
+**At Rest:**
+- DynamoDB tables encrypted with AWS managed keys
+- S3 buckets encrypted (for profile photos - future)
+
+**In Transit:**
+- All API calls use HTTPS/TLS 1.2+
+- GraphQL endpoint enforces secure connections
 
 ---
 
 ## Future Enhancements
 
-### Phase 2 Features
-- Real-time sync using AppSync subscriptions
-- Offline support with local database (SQLite)
-- Google Calendar bidirectional sync
-- Push notifications via Amazon SNS
+### Phase 2: Google Integration
 
-### Phase 3 Features
-- Analytics dashboard with detailed insights
-- Social features (share activities, streaks)
-- Wearable device integration
-- Advanced AI recommendations
+**Google Calendar Sync:**
+- Bidirectional sync (Juno ↔ Google Calendar)
+- Conflict resolution strategy (last-write-wins)
+- Sync triggered on app open + periodic background sync
 
-### Infrastructure Improvements
-- CloudFront CDN for S3 content delivery
-- DynamoDB DAX for caching layer
-- Lambda functions for background processing
-- AWS EventBridge for scheduled sync operations
+**Google OAuth:**
+- Social login option
+- Account linking with existing email accounts
+- Simplified onboarding
 
 ---
 
-**Document End**
+### Phase 3: Real-Time Features
+
+**AppSync Subscriptions:**
+- Live updates when events change
+- Real-time streak updates
+- Collaborative features (future)
+
+**Push Notifications:**
+- Wellness reminders
+- Event notifications
+- Streak milestone celebrations
+
+---
+
+### Phase 4: Offline Support
+
+**Local Database:**
+- SQLite for offline data storage
+- Queue sync operations
+- Conflict resolution on reconnect
+
+**React Query Persistence:**
+- Cache hydration from SQLite
+- Optimistic updates with rollback
+
+---
+
+### Phase 5: Advanced Analytics
+
+**Wellness Insights:**
+- Activity pattern analysis
+- Mind/body balance trends
+- Optimal activity time recommendations
+- Mood correlation with activity types
+
+**Productivity Insights:**
+- Task completion rates
+- Peak productivity hours
+- Calendar density analysis
+
+---
+
+### Phase 6: Infrastructure Improvements
+
+**Performance:**
+- CloudFront CDN for S3 content
+- DynamoDB DAX for caching
+- AppSync caching directives
+
+**Background Processing:**
+- Lambda functions for complex analytics
+- EventBridge for scheduled sync
+- Step Functions for multi-step workflows
+
+---
+
+## Appendix
+
+### GraphQL Schema Reference
+
+**Auto-Generated Types:** See `src/API.ts` (generated from schema)
+
+**Key Models:**
+- User
+- Event  
+- WellnessSession
+- WellnessActivity
+
+**Custom Types:**
+- UserPreferences
+- UserStats
+- EventWellnessActivity
+
+**Enums:**
+- EventType: event, wellness, task
+- WellnessActivityCategory: mind, body
+- WellnessActivitySubcategory: active, restorative
+- WellnessSessionMood: energized, calm, neutral, frustrated
+
+---
+
+### Useful AWS Console Links
+
+**Cognito User Pool:**
+AWS Console → Cognito → User Pools → `amplify-juno-caseyjoiner-sandbox-...`
+
+**DynamoDB Tables:**
+AWS Console → DynamoDB → Tables (search for `User-`, `Event-`, etc.)
+
+**AppSync API:**
+AWS Console → AppSync → APIs → `amplify-juno-caseyjoiner-sandbox-...`
+
+**CloudFormation Stack:**
+AWS Console → CloudFormation → Stacks → `amplify-juno-caseyjoiner-sandbox-9d3d7de92b`
+
+---
+
+### Development Commands
+
+```bash
+# Start AWS sandbox (keep running while developing)
+npx ampx sandbox
+
+# Generate TypeScript types from GraphQL schema
+npx ampx generate graphql-client-code
+
+# View CloudFormation stack details
+npx ampx info
+
+# Deploy to production (when ready)
+npx ampx pipeline-deploy --branch main
+
+# Delete sandbox environment
+npx ampx sandbox delete
+```
+
+---
+
+### Testing Authentication Flow
+
+**Manual Testing Steps:**
+
+1. **Sign Up Test:**
+```typescript
+import { signUp, confirmSignUpCode } from '@/services/auth';
+
+// Step 1: Create account
+const result = await signUp({
+  email: 'test@example.com',
+  password: 'TestPass123!',
+  name: 'Test User',
+});
+
+// Step 2: Check email for verification code
+
+// Step 3: Confirm account
+await confirmSignUpCode({
+  email: 'test@example.com',
+  confirmationCode: '123456',
+});
+```
+
+2. **Sign In Test:**
+```typescript
+import { signIn } from '@/services/auth';
+
+const { success, user, token } = await signIn({
+  email: 'test@example.com',
+  password: 'TestPass123!',
+});
+
+console.log('Logged in:', success);
+console.log('User:', user);
+```
+
+3. **Get Current User Test:**
+```typescript
+import { getCurrentUser } from '@/services/auth';
+
+const { success, user } = await getCurrentUser();
+console.log('Current user:', user);
+```
+
+4. **Sign Out Test:**
+```typescript
+import { signOut } from '@/services/auth';
+
+await signOut();
+console.log('User signed out');
+```
+
+---
+
+### Environment Variables
+
+**amplify_outputs.json (Auto-Generated):**
+```json
+{
+  "auth": {
+    "user_pool_id": "us-east-1_dBLohVOst",
+    "aws_region": "us-east-1",
+    "user_pool_client_id": "262g6ion98cqmqg028tr6rum40",
+    "identity_pool_id": "us-east-1:5c795565-dcc3-4ef4-ab96-70d9236c82e8"
+  },
+  "data": {
+    "url": "https://jghaagn4azhixbybbia5wtkg2i.appsync-api.us-east-1.amazonaws.com/graphql",
+    "aws_region": "us-east-1",
+    "default_authorization_type": "AMAZON_COGNITO_USER_POOLS"
+  }
+}
+```
+
+**Important:** This file is auto-generated and environment-specific. Never commit to version control (already in `.gitignore`).
+
+---
+
+### Known Issues & Solutions
+
+#### Issue 1: Expo + Amplify Module Conflict
+
+**Problem:** ESM/CommonJS conflict between Expo and Amplify Gen 2
+
+**Error:**
+```
+Cannot require() ES Module /Users/.../amplify/backend.ts
+```
+
+**Solution:** Use CommonJS syntax in `amplify/` files
+```javascript
+// ✅ Correct (CommonJS)
+const { defineBackend } = require('@aws-amplify/backend');
+exports.auth = defineAuth({ ... });
+
+// ❌ Wrong (ESM)
+import { defineBackend } from '@aws-amplify/backend';
+export const auth = defineAuth({ ... });
+```
+
+---
+
+#### Issue 2: Owner Authorization + Relationships Conflict
+
+**Problem:** Using `.authorization([a.allow.owner()])` with `hasMany()`/`belongsTo()` causes errors
+
+**Error:**
+```
+Cannot read properties of undefined (reading 'owner')
+```
+
+**Solution:** Remove explicit relationships - owner-based auth handles data filtering automatically
+
+```javascript
+// ❌ Wrong - explicit relationships with owner auth
+Event: a.model({
+  userId: a.id(),
+  user: a.belongsTo('User', 'userId'),  // Don't do this!
+})
+
+// ✅ Correct - no relationships needed
+Event: a.model({
+  title: a.string(),
+  // No userId field needed!
+  // Owner field added automatically
+})
+```
+
+---
+
+#### Issue 3: CustomType Default Values
+
+**Problem:** Using `.default()` inside `a.customType()` causes errors
+
+**Error:**
+```
+.default() is not a function
+```
+
+**Solution:** Set defaults in application code, not schema
+
+```typescript
+// ❌ Wrong - in schema
+stats: a.customType({
+  currentStreak: a.integer().default(0),  // Error!
+})
+
+// ✅ Correct - in schema (no defaults)
+stats: a.customType({
+  currentStreak: a.integer(),
+})
+
+// ✅ Correct - set defaults in app code
+await client.models.User.create({
+  stats: {
+    currentStreak: 0,
+    longestStreak: 0,
+    totalWellnessSessions: 0,
+    completionRate: 0.0,
+  },
+});
+```
+
+---
+
+### Design System Reference
+
+**Colors:**
+- Primary: `#99F7AB` (light green)
+- Secondary: `#FAFFF9` (off-white)
+- Text: DM Sans (headers/body)
+- Buttons: DM Mono (labels)
+
+**Figma:**
+- Design File: https://www.figma.com/design/rKrgzUKTwAFeIoPaVizRPK/Self-Care-Management-App
+- Component Library: Node 755-91172
+- Hi-Fi Wireframes: Node 288-5658
+- Style Tile: Node 503-29677
+
+**NativeWind Classes:**
+```typescript
+// Primary button
+className="bg-primary text-neutral-darkest font-mono px-6 py-3 rounded-lg"
+
+// Screen container
+className="flex-1 bg-secondary p-4"
+
+// Header text
+className="text-3xl font-bold text-neutral-darkest font-sans"
+```
+
+---
+
+### Contributing Guidelines
+
+**Branch Strategy:**
+- `main` - Production-ready code
+- `develop` - Active development branch
+- Feature branches off `develop`
+
+**Commit Messages:**
+```bash
+# Good commit messages
+git commit -m "feat: add wellness session completion flow"
+git commit -m "fix: resolve auth token refresh bug"
+git commit -m "docs: update architecture with new data models"
+
+# Bad commit messages
+git commit -m "updates"
+git commit -m "fixed stuff"
+```
+
+**Pull Request Checklist:**
+- [ ] Code follows TypeScript strict mode
+- [ ] ESLint passes (`npm run lint`)
+- [ ] Prettier formatting applied (`npm run format`)
+- [ ] No console.logs (except in services for debugging)
+- [ ] Types defined for all functions
+- [ ] Comments added for complex logic
+
+---
+
+### Roadmap
+
+**Foundation**
+- ✅ AWS infrastructure setup
+- ✅ Authentication system
+- ✅ Data layer (4 tables)
+- ✅ Zustand stores
+- ✅ Auth service layer
+- 🔨 UI screens (in progress)
+
+**MVP Launch**
+- 📋 Complete planner module
+- 📋 Wellness wheel + timer
+- 📋 Profile analytics
+- 📋 App Store deployment
+
+**Enhancements**
+- 🔮 Google Calendar sync
+- 🔮 Google OAuth
+- 🔮 Push notifications
+- 🔮 Advanced analytics
+
+**Scale**
+- 🔮 Offline support
+- 🔮 Real-time sync
+- 🔮 Wearable integration
+- 🔮 Social features
+
+---
+
+### Contact & Support
+
+**Project Repository:** GitHub (develop branch)
+
+**Tech Stack Support:**
+- AWS Amplify Docs: https://docs.amplify.aws/
+- React Native Docs: https://reactnative.dev/
+- Zustand Docs: https://zustand-demo.pmnd.rs/
+- TanStack Query Docs: https://tanstack.com/query/
+
+**AWS Resources:**
+- CloudFormation Stack: `amplify-juno-caseyjoiner-sandbox-9d3d7de92b`
+- Region: `us-east-1`
+- AppSync Endpoint: `jghaagn4azhixbybbia5wtkg2i.appsync-api.us-east-1.amazonaws.com`
+
+---
+
+## Document Changelog
+
+**Version 1.1 (October 18, 2025):**
+- ✅ Added implementation status section
+- ✅ Documented owner-based authorization pattern
+- ✅ Removed incorrect GSI/foreign key references
+- ✅ Added complete Zustand store documentation
+- ✅ Added auth service layer documentation
+- ✅ Moved Google OAuth/Calendar sync to future enhancements
+- ✅ Added data flow examples
+- ✅ Added testing guidelines
+- ✅ Added known issues & solutions
+
+**Version 1.0 (October 7, 2025):**
+- Initial architecture document
+- Basic data models
+- AWS services overview
+
+---
+
+**END OF DOCUMENT**
