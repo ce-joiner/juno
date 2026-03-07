@@ -84,7 +84,20 @@ try {
 - Extract colors, spacing, typography from designs
 - Generate pixel-perfect components from Figma nodes
 
-**Requires**: Figma desktop app with Dev Mode enabled (Casey must have file open)
+**Requires**: Figma desktop app open with the Desktop Bridge plugin running (Plugins → Development → Figma Desktop Bridge). File must be open in Edit mode (not Dev mode).
+
+### Critical: How to read design tokens
+**Always use `figma_execute` via the Desktop Bridge plugin** — never use REST API calls for variables or styles, they will fail due to missing scopes.
+```javascript
+// Get all color variables
+const collections = await figma.variables.getLocalVariableCollectionsAsync();
+const variables = await figma.variables.getLocalVariablesAsync();
+return { collections, variables };
+```
+
+**If `figma_execute` fails**: Call `figma_reconnect` first, then retry.
+
+**Never use**: `figma_get_variables` or `figma_get_styles` — these use the REST API and will fail. Always use `figma_execute` instead.
 
 ---
 
